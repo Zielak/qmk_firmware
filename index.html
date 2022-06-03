@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Helix Font Editor</title>
+    <script>
+      var colmax = 32;
+      var rowmax = 7;
+      var fontw = 7;
+      var fonth = 10;
+      var script_name = "glcdfont.c";
+
+      var script_lines;
+      var start_index = -1;
+      var end_index = -1;
+
+      var img = [];
+
+      function openScript(files) {
+        var reader = new FileReader();
+        if (files.length == 0) return;
+        reader.readAsText(files[0]);
+        reader.onload = function (evt) {
+          img = parse(reader.result);
+          if (img.length == 0) return;
+          initCanvas();
+          applyImage();
+          document.getElementById("control").style.display = "block";
+        };
+      }
+
+      function parse(scriptBody) {
+        start_index = -1;
+        end_index = -1;
+        var img_data = [];
+        // parse script
+        var arr = [];
+        script_lines = scriptBody.split("\n");
+        for (var i = 0; i < script_lines.length; ++i) {
+          if (start_index != -1) {
+            if (script_lines[i].indexOf("};") >= 0) {
+              end_index = i;
+              break;
+            }
+            var tmp = script_lines[i].split(",").map(function (val) {
+              return val.trim().substr(2);
+            });
+            var ar = [];
+            for (var j = 0; j < tmp.length; ++j) {
+              if (tmp[j] == "") continue;
+              ar.push(parseInt(tmp[j], 16));
+            }
+            arr.push(ar);
+          }
+          if (
+            script_lines[i].indexOf("font[] PROGMEM") >= 0 &&
+            start_index == -1
+          )
+            start_index = i + 1;
+        }
+        if (start_index == -1 || end_index == -1) return [];
+
+        // hex2img
+        for (var colc = 0; colc < colmax; ++colc) {
+          for (var fontwc = 0; fontwc < arr[0].length; ++fontwc) {
+            var tmp = [];
+            for (var rowc = 0; rowc < rowmax; ++rowc) {
+              for (var i = 0; i < fonth; ++i) {
+                var a = colmax * (rowmax - 1) - colmax * rowc + colc;
+                var val =
+                  arr[colmax * (rowmax - 1) - colmax * rowc + colc][fontwc];
+                var v = (val >> (7 - i)) & 1 ? 0 : 255;
+                tmp.push(
+                  (fontwc == fontw - 1 && v) || (i == 0 && v)
+                    ? [200, 255, 255]
+                    : [v, v, v]
+                );
+              }
+            }
+            img_data.push(tmp);
+          }
+        }
+        return img_data;
+      }
+
+      function renderScript() {
+        var body = "";
+
+        for (var i = 0; i < start_index; ++i) body += script_lines[i] + "\n";
+
+        var rowm = colmax;
+        var colm = img[0].length / fonth;
+
+        // img2hex
+        for (var colc = 0; colc < colm; ++colc) {
+          for (var rowc = 0; rowc < rowm; ++rowc) {
+            var line = " ";
+            for (var fontwc = 0; fontwc < fontw; ++fontwc) {
+              var val = 0;
+              for (var fonthc = 0; fonthc < fonth; ++fonthc) {
+                b =
+                  img[fontw * rowc + fontwc][
+                    fonth * (colm - 1) - fonth * colc + fonthc
+                  ][0] < 128
+                    ? 1
+                    : 0;
+                val = (val << 1) | b;
+              }
+              line +=
+                " 0x" +
+                ("00" + val.toString(16).toUpperCase()).substr(-2) +
+                ",";
+            }
+            body += line + "\n";
+          }
+        }
+
+        for (var i = end_index; i < script_lines.length; ++i)
+          body += script_lines[i] + (i != script_lines.length - 1 ? "\n" : "");
+
+        return body;
+      }
+
+      function showScript() {
+        const body = renderScript();
+
+        document.getElementById("render").innerText = body;
+      }
+
+      function downloadScript() {
+        const body = renderScript();
+
+        // make script & download
+        var a = document.createElement("a");
+        a.download = script_name;
+        a.target = "_blank";
+        var blob = new Blob([body], { type: "text/plain" });
+        a.href = window.URL.createObjectURL(blob);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      // canvas
+      var ctx;
+
+      var zoom_level = 10;
+      var rotation = 0;
+      var canvas_width = 192;
+      var canvas_height = 56;
+      var mousedown_flg = false;
+      var mouse_button = 0;
+      var draw_mode = 0; // 0: draw, 1: select, 2: move
+      var select_s_x = -1;
+      var select_s_y = -1;
+      var select_e_x = -1;
+      var select_e_y = -1;
+
+      function initCanvas() {
+        var canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+
+        canvas.width = canvas_width * zoom_level;
+        canvas.height = canvas_height * zoom_level;
+
+        canvas.addEventListener("mousedown", onMouseDown);
+        canvas.addEventListener("mousemove", onMouseMove);
+        canvas.addEventListener("mouseup", onMouseUp);
+        window.addEventListener("mouseup", onMouseUp);
+        window.addEventListener(
+          "contextmenu",
+          function (e) {
+            e.preventDefault();
+          },
+          false
+        );
+
+        drawRuler();
+      }
+
+      function applyImage() {
+        for (var x = 0; x < img.length; ++x) {
+          for (var y = 0; y < img[x].length; ++y) {
+            setPixel(x, img[x].length - y - 1, img[x][y][0] == 0, false);
+          }
+        }
+        drawRuler();
+      }
+
+      function drawRuler(x, y) {
+        if (zoom_level < 10) return;
+        ctx.strokeStyle = "#77bbff";
+        ctx.lineWidth = 2;
+
+        if (ctx.setLineDash) ctx.setLineDash([2, 2]);
+
+        ctx.beginPath();
+        var s_x = 0;
+        var s_y = 0;
+        var e_x = canvas_width;
+        var e_y = canvas_height;
+        if (x != undefined || y != undefined) {
+          s_x = x;
+          s_y = y;
+          e_x = x + 1;
+          e_y = y + 1;
+        }
+        for (var i = s_x; i <= e_x; ++i) {
+          ctx.moveTo(i * zoom_level, 0);
+          ctx.lineTo(i * zoom_level, canvas.width);
+        }
+        for (var i = s_y; i <= e_y; ++i) {
+          ctx.moveTo(0, i * zoom_level);
+          ctx.lineTo(canvas.width, i * zoom_level);
+        }
+        ctx.stroke();
+      }
+
+      function drawRect() {
+        var el = document.getElementById("rect");
+        el.style.width = (select_e_x - select_s_x + 1) * zoom_level + "px";
+        el.style.height = (select_e_y - select_s_y + 1) * zoom_level + "px";
+        el.style.left = select_s_x * zoom_level + "px";
+        el.style.top = select_s_y * zoom_level + "px";
+      }
+
+      function setZoomLevel(ratio) {
+        zoom_level = ratio;
+        if (img.length != 0) {
+          initCanvas();
+          applyImage();
+          rotateCanvas(0);
+        }
+      }
+
+      function rotateCanvas(deg) {
+        rotation += deg;
+        if (rotation > 270) rotation = 0;
+        if (rotation < 0) rotation = 270;
+        var el = document.getElementById("canvas");
+        var origin = "";
+        switch (rotation) {
+          case 90:
+            origin = el.height / 2 + "px " + el.height / 2 + "px";
+            break;
+          case 270:
+            origin = el.width / 2 + "px " + el.width / 2 + "px";
+            break;
+          default:
+            origin = el.width / 2 + "px " + el.height / 2 + "px";
+            break;
+        }
+        el.style.transformOrigin = origin;
+        el.style.transform = "rotateZ(" + rotation + "deg)";
+      }
+
+      function setPixel(x, y, black, ruler) {
+        if (black) {
+          ctx.fillStyle = "rgb(0, 0, 0)";
+          img[x][canvas_height - y - 1] = [0, 0, 0];
+        } else {
+          var grid = x % fontw == fontw - 1 || y % fonth == fonth - 1;
+          ctx.fillStyle = grid ? "rgb(200, 255, 255)" : "rgb(255, 255, 255)";
+          img[x][canvas_height - y - 1] = grid
+            ? [200, 255, 255]
+            : [255, 255, 255];
+        }
+        ctx.fillRect(x * zoom_level, y * zoom_level, zoom_level, zoom_level);
+        if (ruler) drawRuler(x, y);
+      }
+
+      function resetSelected() {
+        select_s_x = -1;
+        select_s_y = -1;
+        select_e_x = -1;
+        select_e_y = -1;
+      }
+
+      function setSelectedArea(x, y) {
+        if (select_s_x == -1) {
+          select_s_x = x;
+          select_s_y = y;
+          select_e_x = x;
+          select_e_y = y;
+          document.getElementById("rect").style.display = "block";
+        } else {
+          select_e_x = x;
+          select_e_y = y;
+        }
+        drawRect();
+        console.log(
+          select_s_x +
+            ", " +
+            select_s_y +
+            " - " +
+            select_e_x +
+            ", " +
+            select_e_y
+        );
+      }
+
+      function fixSelectedArea() {
+        if (select_s_x > select_e_x) {
+          var x = select_s_x;
+          select_s_x = select_e_x;
+          select_e_x = x;
+        }
+        if (select_s_y > select_e_y) {
+          var y = select_s_y;
+          select_e_y = select_s_y;
+          select_s_y = y;
+        }
+      }
+
+      function onMouseDown(e) {
+        mouse_button = e.button;
+        getMousePosition(e);
+        if (draw_mode == 0) {
+          setPixel(getCol(), getRow(), mouse_button == 0, true);
+        } else {
+          resetSelected();
+          setSelectedArea(getCol(), getRow());
+        }
+        mousedown_flg = true;
+      }
+
+      function onMouseMove(e) {
+        getMousePosition(e);
+        if (mousedown_flg) {
+          if (draw_mode == 0)
+            setPixel(getCol(), getRow(), mouse_button == 0, true);
+          else setSelectedArea(getCol(), getRow());
+        }
+      }
+
+      function onMouseUp(e) {
+        mousedown_flg = false;
+        if (draw_mode == 1) {
+          if (select_s_x == select_e_x && select_s_y == select_e_y) {
+            resetSelected();
+            document.getElementById("rect").style.display = "none";
+          } else {
+            fixSelectedArea();
+          }
+        }
+      }
+
+      function getCol() {
+        switch (rotation) {
+          case 90:
+            return Math.floor(mouseY / zoom_level);
+          case 180:
+            return colmax * fontw - Math.floor(mouseX / zoom_level) - 1;
+          case 270:
+            return colmax * fontw - Math.floor(mouseY / zoom_level) - 1;
+          default:
+            return Math.floor(mouseX / zoom_level);
+        }
+      }
+
+      function getRow() {
+        switch (rotation) {
+          case 90:
+            return rowmax * fonth - Math.floor(mouseX / zoom_level) - 1;
+          case 180:
+            return rowmax * fonth - Math.floor(mouseY / zoom_level) - 1;
+          case 270:
+            return Math.floor(mouseX / zoom_level);
+          default:
+            return Math.floor(mouseY / zoom_level);
+        }
+      }
+
+      function getMousePosition(e) {
+        var rect = e.target.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+      }
+    </script>
+    <style>
+      .header {
+        margin-bottom: 12px;
+      }
+
+      .container {
+        position: relative;
+      }
+
+      #rect {
+        position: absolute;
+        z-index: 2;
+        border: 1px dashed black;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: none;
+      }
+
+      #control {
+        margin-top: 8px;
+        display: none;
+      }
+
+      #canvas {
+        z-index: 1;
+      }
+
+      .btn-download {
+        margin-left: 8px;
+      }
+
+      .btn-rot {
+      }
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <div class="header">
+        <p>
+          Helix Font Editor v0.3 by
+          <a href="https://twitter.com/teri_yakichan" target="_blank"
+            >@teri_yakichan</a
+          >
+        </p>
+        <input type="file" onChange="openScript(this.files);" />
+        <div id="control">
+          <button class="btn-rot" onClick="rotateCanvas(-90)">&lt;</button>
+          <button class="btn-rot" onClick="rotateCanvas(90)">&gt;</button>
+          <input
+            id="radio1"
+            name="zoom"
+            type="radio"
+            onClick="setZoomLevel(1);"
+          /><label for="radio1">x1</label>
+          <input
+            id="radio5"
+            name="zoom"
+            type="radio"
+            onClick="setZoomLevel(5);"
+          /><label for="radio5">x5</label>
+          <input
+            id="radio10"
+            name="zoom"
+            type="radio"
+            onClick="setZoomLevel(10);"
+            checked
+          /><label for="radio10">x10</label>
+          <input
+            id="radio15"
+            name="zoom"
+            type="radio"
+            onClick="setZoomLevel(15);"
+          /><label for="radio15">x15</label>
+          <button class="btn-download" onClick="downloadScript();">
+            download
+          </button>
+          <button class="btn-show" onClick="showScript();">show</button>
+        </div>
+      </div>
+      <div class="container">
+        <div id="rect"></div>
+        <canvas id="canvas"></canvas>
+        <pre id="render"></pre>
+      </div>
+    </div>
+  </body>
+</html>
