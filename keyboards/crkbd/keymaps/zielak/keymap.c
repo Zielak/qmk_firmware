@@ -28,9 +28,9 @@
 #define _REST 6
 
 enum custom_keycodes {
-  APP_NXT = SAFE_RANGE,
-  APP_PRV,
-  K_PRSCR, // print region of screen
+//   APP_NXT,
+//   APP_PRV,
+  K_PRSCR = SAFE_RANGE, // print region of screen
   K_QUIT,
   K_CLOSE,
   K_FIND,
@@ -46,14 +46,14 @@ enum custom_keycodes {
 
 // App swapping and Print screen are different on Mac...
 static bool isOnMac = true;
-static bool isSwappingApps = false;
+// static bool isSwappingApps = false;
 static bool isCapsWordUp = false;
 static uint16_t ctrlKey = KC_LCTL;
 
 // Shortcuts to make keymap more readable
 #define SYM_L   MO(_SYMB)
 #define NAV_L   MO(_NAV) // TT(_NAV)
-#define ADJ_L   MO(_ADJUST) // LT(_ADJUST, KC_ESC)
+#define ADJ_L   LT(_ADJUST, KC_ESC) // MO(_ADJUST)
 #define RST_L   MO(_REST)
 #define GM2_L   MO(_GAME2)
 
@@ -80,10 +80,10 @@ static uint16_t ctrlKey = KC_LCTL;
 #define _RGUI RGUI_T(KC_SLASH)
 
 // Home row for nav layer
-#define NA_LGUI LGUI_T(KC_P7)
-#define NA_LALT RALT_T(KC_P8) // RALT_T on left side - because I type PL letters on windows
-#define NA_LSFT LSFT_T(KC_P9)
-#define NA_LCTL LCTL_T(KC_DOT)
+// #define NA_LGUI LGUI_T(KC_PMNS)
+// #define NA_LALT RALT_T(KC_P8) // RALT_T on left side - because I type PL letters on windows
+// #define NA_LSFT LSFT_T(KC_P9)
+// #define NA_LCTL LCTL_T(KC_PSLS)
 
 #define OSM_CTL OSM(MOD_RCTL)
 #define OSM_ALT OSM(MOD_RALT)
@@ -101,7 +101,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //|--------+--------+--------+--------+--------+--------|          |--------+--------+--------+--------+--------+--------|
        KC_LSFT ,_LGUI   ,_LALT   ,_LSFT   ,_LCTL   ,KC_V    ,           KC_K    ,_RCTL   ,_RSFT   ,_RALT   ,_RGUI   ,ADJ_L   ,
     //|--------+--------+--------+--------+--------+--------+---|  |---+--------+--------+--------+--------+--------+--------|
-                                      KC_ESC  ,NAV_L   ,KC_SPC  ,   KC_LSFT  ,SYM_L  ,KC_LALT
+                                      KC_LALT ,NAV_L   ,KC_SPC  ,   KC_LSFT  ,SYM_L  ,KC_LALT
                                    //`--------------------------'  `--------------------------'
   ),
 
@@ -119,18 +119,31 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_GAME2] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       _______ ,KC_1    ,KC_2    ,KC_3    ,KC_I    ,KC_ESC  ,            KC_HOME ,KC_END  ,KC_UP   ,KC_WH_U ,KC_DEL  ,KC_BSPC ,
+       _______ ,KC_1    ,KC_2    ,KC_3    ,KC_I    ,KC_ESC  ,            KC_INS  ,KC_HOME ,KC_UP   ,KC_END  ,KC_PGUP ,KC_BSPC ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_4    ,KC_5    ,KC_6    ,KC_MINS ,KC_BSPC ,            KC_PGUP ,KC_LEFT ,KC_DOWN ,KC_RIGHT,APP_PRV ,APP_NXT ,
+       _______ ,KC_4    ,KC_5    ,KC_6    ,KC_MINS ,KC_BSPC ,            XXXXXXX ,KC_LEFT ,KC_DOWN ,KC_RIGHT,KC_PGDN ,KC_DEL  ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_7    ,KC_8    ,KC_9    ,KC_EQL  ,KC_M    ,            KC_PGDN ,KC_WH_D ,K_INDEL ,K_INDER ,KC_INS  ,ADJ_L   ,
+       _______ ,KC_7    ,KC_8    ,KC_9    ,KC_EQL  ,KC_M    ,            XXXXXXX ,XXXXXXX ,XXXXXXX ,KC_DOT  ,KC_SLASH,ADJ_L   ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
                                         KC_0  ,_ENTRY_ ,_______ ,   _______ ,RST_L   ,_______
                                    //`--------------------------'  `--------------------------'
   ),
 
   // keypad part focused on IP/port entry KC_COLN KC_P0 KC_DOT
+  // KC_PERC KC_PEQL
   [_NAV] = LAYOUT_split_3x6_3(
+    //,-----------------------------------------------------.           ,-----------------------------------------------------.
+       K_TERMI ,KC_COLN ,KC_P5   ,KC_P6   ,KC_P7   ,KC_SLASH,            KC_INS  ,KC_HOME ,KC_UP   ,KC_END  ,KC_PGUP ,KC_BSPC ,
+    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
+       KC_P0   ,KC_P1   ,KC_P2   ,KC_P3   ,KC_P4   ,KC_P8   ,            XXXXXXX ,KC_LEFT ,KC_DOWN ,KC_RIGHT,KC_PGDN ,KC_DEL  ,
+    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
+       KC_PMNS ,KC_LGUI ,KC_LALT ,KC_LSFT ,KC_LCTL ,KC_P9   ,            XXXXXXX ,XXXXXXX ,XXXXXXX ,KC_DOT  ,KC_SLASH,ADJ_L   ,
+    //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
+                                      KC_DOT  ,_ENTRY_ ,_______ ,   _______ ,RST_L   ,_______
+                                   //`--------------------------'  `--------------------------'
+  ),                 // ,8       ,9
+/*
+   [_NAV] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
        K_TERMI ,KC_P1   ,KC_P2   ,KC_P3   ,KC_COLN ,KC_PERC ,            KC_HOME ,KC_END  ,KC_UP   ,KC_WH_D ,KC_DEL  ,KC_BSPC ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
@@ -141,18 +154,32 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                       _______ ,_ENTRY_ ,_______ ,   _______ ,RST_L   ,_______
                                    //`--------------------------'  `--------------------------'
   ),
+*/
+
+//   [_SYMB] = LAYOUT_split_3x6_3(
+//     //,-----------------------------------------------------.           ,-----------------------------------------------------.
+//        KC_GRV  ,KC_QUES ,KC_EXLM ,K_ARROW ,KC_PPLS ,KC_PERC ,            XXXXXXX ,KC_LPRN ,KC_RPRN ,KC_GRV  ,_______ ,KC_BSPC ,
+//     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
+//        _______ ,KC_AT   ,KC_DLR  ,KC_COLN ,KC_PMNS ,KC_EQL  ,            KC_UNDS ,KC_LCBR ,KC_RCBR ,KC_AMPR ,KC_PIPE ,KC_DQUO ,
+//     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
+//        _______ ,KC_TILD ,KC_HASH ,KC_CIRC ,KC_PSLS ,KC_PAST ,            KC_LBRC ,KC_RBRC ,KC_LABK ,KC_RABK ,KC_BSLS ,XXXXXXX ,
+//     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
+//                                       _______ ,RST_L   ,_______ ,   _______ ,_ENTRY_ ,_______
+//                                    //`--------------------------'  `--------------------------'
+//   ),
 
   [_SYMB] = LAYOUT_split_3x6_3(
-    //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       KC_GRV  ,KC_QUES ,KC_EXLM ,K_ARROW ,KC_PPLS ,KC_PERC ,            XXXXXXX ,KC_TILD ,KC_UNDS ,KC_GRV  ,KC_COLN ,KC_DEL  ,
+    //,-----------------------------------------------------.           ,----------------------------------------------------.
+       KC_GRV  ,KC_QUES ,KC_EXLM ,K_ARROW ,KC_PPLS ,KC_PERC ,            KC_LABK ,KC_LPRN ,KC_RPRN ,KC_RABK ,KC_COLN ,KC_BSPC ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_AT   ,KC_DLR  ,KC_AMPR ,KC_PMNS ,KC_PEQL ,            KC_LPRN ,KC_RPRN ,KC_LCBR ,KC_RCBR ,KC_PIPE ,KC_DQUO ,
+       _______ ,KC_AT   ,KC_DLR  ,KC_UNDS ,KC_PMNS ,KC_EQL  ,            KC_LBRC ,KC_LCBR ,KC_RCBR ,KC_RBRC ,KC_PIPE ,KC_AMPR ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,XXXXXXX ,KC_HASH ,KC_CIRC ,KC_PSLS ,KC_PAST ,            KC_LBRC ,KC_RBRC ,KC_LABK ,KC_RABK ,KC_BSLS ,XXXXXXX ,
+       _______ ,KC_TILD ,KC_HASH ,KC_CIRC ,KC_PSLS ,KC_PAST ,            KC_BSLS ,KC_RCTL ,KC_RSFT ,KC_RALT ,KC_RGUI ,XXXXXXX ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
                                       _______ ,RST_L   ,_______ ,   _______ ,_ENTRY_ ,_______
                                    //`--------------------------'  `--------------------------'
   ),
+
 
   [_ADJUST] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
@@ -301,9 +328,9 @@ void oled_render_caps_status(void) {
     if(isCapsWordUp){
         oled_write_P(PSTR(" CAPS "), true);
     }
-    if(isSwappingApps){
-        oled_write_P(PSTR(" APPswap "), true);
-    }
+    // if(isSwappingApps){
+    //     oled_write_P(PSTR(" APPswap "), true);
+    // }
     oled_advance_page(true);
 }
 
@@ -407,46 +434,47 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return tap_ctrl_and_key(KC_LBRC, record);
         case K_INDER:
             return tap_ctrl_and_key(KC_RBRC, record);
-        case APP_NXT:
-        case APP_PRV:
-            // Only accept while help RALT
-            if (get_mods() & MOD_BIT(KC_RALT) || isSwappingApps) {
-                dprint("+KC_RALT");
-                if (record->event.pressed) {
-                    isSwappingApps = true;
-                    unregister_code(KC_RALT);
+        // case APP_NXT:
+        // case APP_PRV:
+        //     // Only accept while help RALT
+        //     if (get_mods() & MOD_BIT(KC_RALT) || isSwappingApps) {
+        //         dprint("+KC_RALT");
+        //         if (record->event.pressed) {
+        //             isSwappingApps = true;
+        //             unregister_code(KC_RALT);
 
-                    register_code(isOnMac ? KC_LGUI : KC_LALT);
-                    if(keycode == APP_PRV) {
-                        register_code(KC_LSFT);
-                    }
-                    tap_code(KC_TAB);
-                    if(keycode == APP_PRV) {
-                        unregister_code(KC_LSFT);
-                    }
-                } else {
-                    unregister_code(KC_TAB);
-                }
-                return true;
-            } else {
-                if (record->event.pressed) {
-                    register_code(KC_LCTL);
-                    if(keycode == APP_PRV) {
-                        register_code(KC_LSFT);
-                    }
-                    tap_code(KC_TAB);
-                    if(keycode == APP_PRV) {
-                        unregister_code(KC_LSFT);
-                    }
-                    unregister_code(KC_LCTL);
-                }
-            }
-        case KC_RALT:
-            if(!record->event.pressed && isSwappingApps) {
-                isSwappingApps = false;
-                unregister_code(isOnMac ? KC_LGUI : KC_LALT);
-                unregister_code(KC_TAB);
-            }
+        //             register_code(isOnMac ? KC_LGUI : KC_LALT);
+        //             if(keycode == APP_PRV) {
+        //                 register_code(KC_LSFT);
+        //             }
+        //             tap_code(KC_TAB);
+        //             if(keycode == APP_PRV) {
+        //                 unregister_code(KC_LSFT);
+        //             }
+        //         } else {
+        //             unregister_code(KC_TAB);
+        //         }
+        //         return true;
+        //     } else {
+        //         if (record->event.pressed) {
+        //             register_code(KC_LCTL);
+        //             if(keycode == APP_PRV) {
+        //                 register_code(KC_LSFT);
+        //             }
+        //             tap_code(KC_TAB);
+        //             if(keycode == APP_PRV) {
+        //                 unregister_code(KC_LSFT);
+        //             }
+        //             unregister_code(KC_LCTL);
+        //         }
+        //     }
+        // case KC_RALT:
+        //     if(!record->event.pressed && isSwappingApps) {
+        //         isSwappingApps = false;
+        //         unregister_code(isOnMac ? KC_LGUI : KC_LALT);
+        //         unregister_code(KC_TAB);
+        //         return false;
+        //     }
         case K_TERMI:
             if (record->event.pressed) {
                 register_code(KC_LCTL);
