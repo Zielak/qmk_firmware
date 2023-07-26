@@ -1,12 +1,11 @@
 // Caps word settings
-#define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
-#define CAPS_WORD_IDLE_TIMEOUT 3000  // 3 seconds.
+// #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
+// #define CAPS_WORD_IDLE_TIMEOUT 3000  // 3 seconds.
 
 #define TAPPING_TOGGLE 2
 // #define RETRO_TAPPING # can't quickly hold and click mouse button, as mouse isn'r recognized by QMK
 
 #define TAPPING_TERM 180
-#define IGNORE_MOD_TAP_INTERRUPT
 
 #define COMBO_COUNT 1
 #define COMBO_STRICT_TIMER
