@@ -5,9 +5,9 @@
 #define TAPPING_TOGGLE 2
 // #define RETRO_TAPPING # can't quickly hold and click mouse button, as mouse isn'r recognized by QMK
 
-#define TAPPING_TERM 180
+#define TAPPING_TERM 150
 
-#define COMBO_COUNT 1
+#define COMBO_COUNT 3
 #define COMBO_STRICT_TIMER
 // #define COMBO_ONLY_FROM_LAYER 0
 
