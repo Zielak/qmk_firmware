@@ -5,7 +5,7 @@
 #define TAPPING_TOGGLE 2
 // #define RETRO_TAPPING # can't quickly hold and click mouse button, as mouse isn'r recognized by QMK
 
-#define TAPPING_TERM 175
+#define TAPPING_TERM 150
 
 #define COMBO_COUNT 2
 #define COMBO_STRICT_TIMER
@@ -42,7 +42,6 @@
 // #define EE_HANDS
 
 // #define TAPPING_FORCE_HOLD
-// #define TAPPING_TERM 100
 
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_EFFECT_BREATHING

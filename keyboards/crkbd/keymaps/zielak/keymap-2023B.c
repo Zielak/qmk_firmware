@@ -23,12 +23,12 @@
 #define _QWERTY 1
 #define _NAV 2
 #define _NUM 3
-#define _NUM_PAD 4
-#define _FNK 5
-#define _SYM 6
+#define _FNK 4
+#define _SYM 5
 
 enum custom_keycodes {
-    K_QUIT = SAFE_RANGE,
+    K_PRSCR = SAFE_RANGE, // print region of screen
+    K_QUIT,
     K_CLOSE,
     K_FIND,
     K_UNDO,
@@ -42,29 +42,20 @@ enum custom_keycodes {
     K_TERMI,
     APP_NXT,
     APP_PRV,
-    NUM_L,
-    NUMPD_L,
 };
 
 // App swapping and Print screen are different on Mac...
 static uint16_t ctrlKey        = KC_LGUI;
 static bool     isOnMac        = true;
 static bool     isSwappingApps = false;
-static bool     isCapsLockOn   = false;
+static bool     isCapsWordUp   = false;
 
-static bool     numActive    = false;
-static bool     numLocked    = false;
-static uint16_t numLayer     = _NUM;
-static uint16_t numTimestamp = 0;
-static uint16_t numTapCount  = 0;
+// Shortcuts to make keymap more readable
 
-// Aliases to make keymap more readable
-#define FNK_L LT(_FNK, KC_ESC)
-#define NAV_L LT(_NAV, KC_DEL)
-// #define NUM_L TT(_NUM)
-// #define NUMPD_L TG(_NUM_PAD)
-// #define TAP_ALT KC_F18
-#define SYM_L LT(_SYM, KC_F18)
+#define NAV_L MO(_NAV)
+#define NUM_L MO(_NUM)
+#define FNK_L MO(_FNK)
+#define SYM_L MO(_SYM)
 
 // Which key do you use to enter a layer
 #define _ENTRY_ _______
@@ -94,11 +85,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_COLEMAKDH] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       XXXXXXX ,KC_Q    ,KC_W    ,KC_F    ,KC_P    ,KC_B    ,            KC_J    ,KC_L    ,KC_U    ,KC_Y    ,KC_BSPC ,XXXXXXX ,
+       KC_TAB  ,KC_Q    ,KC_W    ,KC_F    ,KC_P    ,KC_B    ,            KC_J    ,KC_L    ,KC_U    ,KC_Y    ,KC_BSPC ,XXXXXXX ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       XXXXXXX ,_LCTL   ,_LALT   ,_LSFT   ,_LGUI   ,KC_G    ,            KC_M    ,_RGUI   ,_RSFT   ,_RALT   ,_RCTL   ,XXXXXXX ,
+       KC_LGUI ,_LCTL   ,_LALT   ,_LSFT   ,_LGUI   ,KC_G    ,            KC_M    ,_RGUI   ,_RSFT   ,_RALT   ,_RCTL   ,XXXXXXX ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       XXXXXXX ,KC_Z    ,KC_X    ,KC_C    ,KC_D    ,KC_V    ,            KC_K    ,KC_H    ,KC_COMM ,KC_DOT  ,KC_SLASH,XXXXXXX ,
+       KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_D    ,KC_V    ,            KC_K    ,KC_H    ,KC_COMM ,KC_DOT  ,KC_SLASH,XXXXXXX ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
                                       FNK_L   ,NAV_L   ,KC_SPACE,   NUM_L   ,SYM_L   ,KC_RALT
                                    //`--------------------------'  `--------------------------'
@@ -118,45 +109,34 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_NAV] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       _______ ,K_TERMI ,APP_PRV ,APP_NXT ,KC_PSCR ,XXXXXXX ,            KC_PGUP ,KC_HOME ,KC_UP   ,KC_END  ,_______ ,_______ ,
+       _______ ,K_TERMI ,APP_PRV ,APP_NXT ,K_PRSCR ,XXXXXXX ,            KC_PGUP ,KC_HOME ,KC_UP   ,KC_END  ,KC_BSPC ,_______ ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_LCTL ,KC_LALT ,KC_LSFT ,KC_LGUI ,KC_ESC  ,            KC_PGDN ,KC_LEFT ,KC_DOWN ,KC_RIGHT,XXXXXXX ,_______ ,
+       _______ ,KC_LCTL ,KC_LALT ,KC_LSFT ,KC_LGUI ,KC_ESC  ,            KC_PGDN ,KC_LEFT ,KC_DOWN ,KC_RIGHT,KC_DEL  ,_______ ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,K_UNDO  ,K_CUT   ,K_COPY  ,K_PASTE ,K_REDO  ,            XXXXXXX ,KC_TAB  ,K_INDEL ,K_INDER ,KC_INS  ,_______ ,
+       _______ ,K_UNDO  ,K_CUT   ,K_COPY  ,K_PASTE ,K_REDO  ,            XXXXXXX ,XXXXXXX ,K_INDEL ,K_INDER ,KC_INS  ,_______ ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
-                                      XXXXXXX ,_ENTRY_ ,_______ ,   XXXXXXX ,KC_CAPS ,XXXXXXX
+                                      XXXXXXX ,_ENTRY_ ,_______ ,   XXXXXXX ,CW_TOGG ,XXXXXXX
                                    //`--------------------------'  `--------------------------'
   ),
   [_NUM] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       _______ ,KC_PERC ,KC_7    ,KC_8    ,KC_9    ,KC_PPLS ,            NUMPD_L ,XXXXXXX ,XXXXXXX ,XXXXXXX ,_______ ,_______ ,
-    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_PAST ,KC_4    ,KC_5    ,KC_6    ,KC_MINS ,            XXXXXXX ,KC_RGUI ,KC_RSFT ,KC_RALT ,KC_RCTL ,_______ ,
-    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_PSLS ,KC_1    ,KC_2    ,KC_3    ,KC_EQL  ,            K_REDO  ,K_PASTE ,K_COPY  ,K_CUT   ,K_UNDO  ,_______ ,
+       _______ ,KC_P7   ,KC_P8   ,KC_P9   ,KC_PPLS ,KC_PERC ,            XXXXXXX ,XXXXXXX ,XXXXXXX ,XXXXXXX ,KC_BSPC  ,_______ ,
+    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+------- +--------|
+       _______ ,KC_P4   ,KC_P5   ,KC_P6   ,KC_PMNS ,KC_EQL  ,            KC_ESC  ,KC_RGUI ,KC_RSFT ,KC_RALT ,KC_DEL  ,_______ ,
+    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+------- +--------|
+       _______ ,KC_P1   ,KC_P2   ,KC_P3   ,KC_PSLS ,KC_PAST ,            K_REDO  ,K_PASTE ,K_COPY  ,K_CUT   ,K_UNDO  ,_______ ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
-                                      KC_DOT   ,KC_0   ,_______ ,   _ENTRY_ ,XXXXXXX ,XXXXXXX
-                                   //`--------------------------'  `--------------------------'
-  ),
-  [_NUM_PAD] = LAYOUT_split_3x6_3(
-    //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       _______ ,KC_PERC ,KC_P7   ,KC_P8   ,KC_P9   ,KC_PPLS ,            NUMPD_L ,XXXXXXX ,XXXXXXX ,XXXXXXX ,_______ ,_______ ,
-    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_PAST ,KC_P4   ,KC_P5   ,KC_P6   ,KC_PMNS ,            XXXXXXX ,KC_RGUI ,KC_RSFT ,KC_RALT ,KC_RCTL ,_______ ,
-    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_PSLS ,KC_P1   ,KC_P2   ,KC_P3   ,KC_PENT ,            K_REDO  ,K_PASTE ,K_COPY  ,K_CUT   ,K_UNDO  ,_______ ,
-    //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
-                                      KC_PDOT ,KC_P0   ,_______ ,   _ENTRY_ ,XXXXXXX ,XXXXXXX
+                                      KC_P0   ,KC_DOT  ,_______ ,   _ENTRY_ ,XXXXXXX ,XXXXXXX
                                    //`--------------------------'  `--------------------------'
   ),
 
   [_FNK] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       _______ ,KC_F1   ,KC_F2   ,KC_F3   ,KC_F4   ,XXXXXXX ,            GU_TOGG ,RGB_TOG ,KC_BRID ,KC_BRIU ,DT_UP   ,_______ ,
-    //|--------+--------+--------+--------+--------|--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_F5   ,KC_F6   ,KC_F7   ,KC_F8   ,XXXXXXX ,            CG_NORM ,KC_MUTE ,KC_VOLD ,KC_VOLU ,DT_DOWN ,_______ ,
-    //|--------+--------+--------+--------+--------|--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_F9   ,KC_F10  ,KC_F11  ,KC_F12  ,XXXXXXX ,            CG_SWAP ,KC_MPLY ,KC_MPRV ,KC_MNXT ,DT_PRNT ,EE_CLR  ,
+       _______ ,KC_ESC  ,KC_F1   ,KC_F2   ,KC_F3   ,KC_F4   ,            GU_TOGG ,RGB_TOG ,KC_BRID ,KC_BRIU ,DT_UP   ,_______ ,
+    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
+       _______ ,KC_TAB  ,KC_F5   ,KC_F6   ,KC_F7   ,KC_F8   ,            CG_NORM ,KC_MUTE ,KC_VOLD ,KC_VOLU ,DT_DOWN ,_______ ,
+    //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
+       _______ ,KC_LSFT ,KC_F9   ,KC_F10  ,KC_F11  ,KC_F12  ,            CG_SWAP ,KC_MPLY ,KC_MPRV ,KC_MNXT ,DT_PRNT ,EE_CLR  ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
                                       _ENTRY_ ,XXXXXXX ,_______ ,   DF_QWER ,DF_COLE ,XXXXXXX
                                    //`--------------------------'  `--------------------------'
@@ -164,13 +144,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_SYM] = LAYOUT_split_3x6_3(
     //,-----------------------------------------------------.           ,-----------------------------------------------------.
-       _______ ,KC_QUES ,KC_EXLM ,K_ARROW ,KC_COLN ,KC_PPLS ,            XXXXXXX ,KC_LCBR ,KC_RCBR ,KC_AMPR ,_______ ,_______ ,
+       _______ ,KC_QUES ,KC_EXLM ,K_ARROW ,KC_LCBR ,KC_PIPE ,            KC_AMPR ,KC_RCBR ,KC_DQUO ,KC_AMPR ,KC_BSPC ,_______ ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_AT   ,KC_DLR  ,KC_UNDS ,KC_SCLN ,KC_MINS ,            KC_GRV  ,KC_LPRN ,KC_RPRN ,KC_DQUO ,KC_PIPE ,_______ ,
+       _______ ,KC_AT   ,KC_DLR  ,KC_UNDS ,KC_LPRN ,KC_SCLN ,            KC_COLN ,KC_RPRN ,KC_GRV  ,KC_QUOT ,KC_DEL  ,_______ ,
     //|--------+--------+--------+--------+--------+--------|           |--------+--------+--------+--------+--------+--------|
-       _______ ,KC_TILD ,KC_HASH ,KC_CIRC ,KC_PSLS ,KC_PAST ,            XXXXXXX ,KC_LBRC ,KC_RBRC ,KC_QUOT ,KC_BSLS ,_______ ,
+       _______ ,KC_TILD ,KC_HASH ,KC_CIRC ,KC_LBRC ,KC_LT   ,            KC_GT   ,KC_RBRC ,KC_PSLS ,KC_PAST ,KC_BSLS ,_______ ,
     //|--------+--------+--------+--------+--------+--------+---|  |----+--------+--------+--------+--------+--------+--------|
-                                      XXXXXXX ,KC_CAPS ,_______ ,   XXXXXXX ,_ENTRY_ ,XXXXXXX
+                                      XXXXXXX ,CW_TOGG ,_______ ,   XXXXXXX ,_ENTRY_ ,XXXXXXX
                                    //`--------------------------'  `--------------------------'
   ),
 
@@ -205,84 +185,8 @@ bool tap_ctrl_and_key(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
-bool switch_num_layers(void) {
-    numActive = !numActive;
-    numLayer  = numActive ? _NUM_PAD : _NUM;
-
-    if (numActive) {
-        layer_on(_NUM_PAD);
-        layer_off(_NUM);
-    } else {
-        layer_off(_NUM_PAD);
-        layer_on(_NUM);
-    }
-
-    return false;
-}
-
-void num_layers_off(void) {
-    layer_off(_NUM);
-    layer_off(_NUM_PAD);
-}
-
-void num_layer_on(void) {
-    layer_on(numLayer);
-    numTapCount = 0;
-}
-
-bool tap_num_layers(keyrecord_t *record) {
-    // dprint("tap_num_layers");
-    // record->tap.count
-    // record->tap.interrupted
-
-    if (!numLocked) {
-        if (record->event.pressed && numTapCount < 1) {
-            numTapCount++;
-        }
-    }
-
-    dprintf("tap_num_layers - TAPPING_TERM: %d, now: %d, last: %d, TAPcount: %d\n", TAPPING_TERM, record->event.time, numTimestamp, record->tap.count);
-    // Did double tap
-    if (!numLocked && record->event.pressed && record->tap.count > 1 && record->event.time < numTimestamp + TAPPING_TERM) {
-        num_layer_on();
-        dprint("Did double tap!\n");
-        numLocked = true;
-        return false;
-    }
-
-    if (numLocked) {
-        dprint("is locked\n");
-        if (record->event.pressed) {
-            dprint("unlocking\n");
-            numLocked = false;
-            num_layers_off();
-        } else {
-        }
-        return true;
-    }
-
-    if (record->event.pressed) {
-        numTimestamp = record->event.time;
-        num_layer_on();
-    } else {
-        num_layers_off();
-    }
-    return true;
-}
-
-bool led_update_kb(led_t led_state) {
-    bool res = led_update_user(led_state);
-    if (res) {
-        // writePin sets the pin high for 1 and low for 0.
-        // In this example the pins are inverted, setting
-        // it low/0 turns it on, and high/1 turns the LED off.
-        // This behavior depends on whether the LED is between the pin
-        // and VCC or the pin and GND.
-        // writePin(BLUE_LED_PIN, led_state.caps_lock);
-
-        isCapsLockOn = led_state.caps_lock;
-    }
-    return res;
+void caps_word_set_user(bool active) {
+    isCapsWordUp = active;
 }
 
 // Combo stuff
@@ -326,9 +230,6 @@ void oled_render_layer_state(void) {
         case _NUM:
             oled_write_ln_P(PSTR("numb3r5"), false);
             break;
-        case _NUM_PAD:
-            oled_write_ln_P(PSTR("num PAD"), false);
-            break;
         case _FNK:
             oled_write_ln_P(PSTR("! FN !"), false);
             break;
@@ -365,7 +266,7 @@ void oled_render_caps_status(void) {
     oled_write_P(PSTR("\n- "), false);
     oled_write_P(isOnMac ? PSTR(" Mac ") : PSTR(" Win "), false);
 
-    if (isCapsLockOn) {
+    if (isCapsWordUp) {
         oled_write_P(PSTR(" CAPS "), true);
     }
     // if(isSwappingApps){
@@ -429,7 +330,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 ctrlKey = KC_LCTL;
             }
             return true;
-        case KC_PSCR:
+        case K_PRSCR:
             if (record->event.pressed) {
                 if (isOnMac) {
                     register_code(KC_LGUI);
@@ -454,34 +355,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
             }
             return false;
-        case APP_NXT:
-        case APP_PRV:
-            // Only accept while on layer NAV
-            if (current_layer == _NAV || isSwappingApps) {
-                if (record->event.pressed) {
-                    isSwappingApps = true;
-
-                    register_code(isOnMac ? KC_LGUI : KC_LALT);
-                    if (keycode == APP_PRV) {
-                        register_code(KC_LSFT);
-                    }
-                    tap_code(KC_TAB);
-                    if (keycode == APP_PRV) {
-                        unregister_code(KC_LSFT);
-                    }
-                } else {
-                    unregister_code(KC_TAB);
-                }
-                return true;
-            }
-            return false;
-        case NAV_L:
-            if (!record->event.pressed && isSwappingApps) {
-                isSwappingApps = false;
-                unregister_code(isOnMac ? KC_LGUI : KC_LALT);
-                unregister_code(KC_TAB);
-            }
-            return true;
         case K_UNDO:
             return tap_ctrl_and_key(KC_Z, record);
         case K_REDO:
@@ -505,7 +378,48 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return tap_ctrl_and_key(KC_LBRC, record);
         case K_INDER:
             return tap_ctrl_and_key(KC_RBRC, record);
+        case APP_NXT:
+        case APP_PRV:
+            // Only accept while on layer NAV
+            if (current_layer == _NAV || isSwappingApps) {
+                if (record->event.pressed) {
+                    isSwappingApps = true;
 
+                    register_code(isOnMac ? KC_LGUI : KC_LALT);
+                    if (keycode == APP_PRV) {
+                        register_code(KC_LSFT);
+                    }
+                    tap_code(KC_TAB);
+                    if (keycode == APP_PRV) {
+                        unregister_code(KC_LSFT);
+                    }
+                } else {
+                    unregister_code(KC_TAB);
+                }
+                return true;
+            }
+            // } else {
+            //     if (record->event.pressed) {
+            //         register_code(KC_LCTL);
+            //         if(keycode == APP_PRV) {
+            //             register_code(KC_LSFT);
+            //         }
+            //         tap_code(KC_TAB);
+            //         if(keycode == APP_PRV) {
+            //             unregister_code(KC_LSFT);
+            //         }
+            //         unregister_code(KC_LCTL);
+            //     }
+            // }
+            return false;
+        case NAV_L:
+            if (!record->event.pressed && isSwappingApps) {
+                isSwappingApps = false;
+                unregister_code(isOnMac ? KC_LGUI : KC_LALT);
+                unregister_code(KC_TAB);
+                // return false;
+            }
+            return true;
         case K_TERMI:
             if (record->event.pressed) {
                 register_code(KC_LCTL);
@@ -513,25 +427,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_LCTL);
             }
             return false;
-        case SYM_L:
-            dprintf("TAP_ALT: %d, now: %d\n", record->event.pressed, record->event.time);
-            if (record->tap.count > 0) {
-                dprintf("tap.count = %d\n", record->tap.count);
-                if (record->event.pressed) {
-                    dprint("set oneshot!\n");
-                    set_oneshot_mods(MOD_BIT(KC_ALGR));
-                } else {
-                }
-                return false;
-            }
-            break;
-        case NUM_L:
-            return tap_num_layers(record);
-        case NUMPD_L:
-            if (record->event.pressed) {
-                switch_num_layers();
-            }
-            return true;
         default:
             return true; // Process all other keycodes normally
     }
